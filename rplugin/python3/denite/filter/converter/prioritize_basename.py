@@ -19,14 +19,13 @@ class Filter(Base):
         for candidate in context['candidates']:
             if 'action__path' in candidate:
                 candidate['abbr'] = self.get_abbr(candidate, root_dirs)
-                candidate['word'] = candidate['abbr']
         return context['candidates']
 
     def get_abbr(self, candidate, root_dirs):
         root_dir = self.get_root_dir(candidate, root_dirs)
         path, basename = split(candidate['action__path'])
         path = Path(path).relative_to(root_dir)
-        path = './{}'.format(path) if path != '.' else './'
+        path = '{}'.format(path) if path != '.' else ''
         return "{} - {}".format(basename, path)
 
     def get_root_dir(self, candidate, root_dirs):
@@ -37,9 +36,9 @@ class Filter(Base):
                 return root_dir
 
         root_dir = path2project(self.vim, candidate_dir, ','.join(self.vars['root_markers']))
-        if root_dir is candidate_dir:
-            return relpath(candidate_dir)
+        if root_dir == candidate_dir:
+            return '/'
 
-        root_dirs.append(root_dir)
+        root_dirs.append(str(Path(root_dir).parent))
         return root_dir
 
