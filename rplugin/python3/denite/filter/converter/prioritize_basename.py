@@ -25,7 +25,7 @@ class Filter(Base):
         root_dir = self.get_root_dir(candidate, root_dirs)
         path, basename = split(candidate['action__path'])
         path = Path(path).relative_to(root_dir)
-        path = '{}'.format(path) if path != '.' else ''
+        path = path if path != '.' else ''
         return "{} - {}".format(basename, path)
 
     def get_root_dir(self, candidate, root_dirs):
@@ -39,6 +39,7 @@ class Filter(Base):
         if root_dir == candidate_dir:
             return '/'
 
-        root_dirs.append(str(Path(root_dir).parent))
+        root_dir = str(Path(root_dir).parent)
+        root_dirs.append(root_dir)
         return root_dir
 
