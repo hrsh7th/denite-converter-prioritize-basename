@@ -1,7 +1,7 @@
 from pathlib import Path
-from os.path import split, commonprefix
+from os.path import split
 from denite.base.filter import Base
-from denite.util import path2project
+from denite.util import path2project, path2dir, relpath
 
 class Filter(Base):
 
@@ -15,25 +15,31 @@ class Filter(Base):
         }
 
     def filter(self, context):
-        root_dir = self.root_dir(context)
+        root_dirs = []
         for candidate in context['candidates']:
             if 'action__path' in candidate:
-                words = split(candidate['action__path'])
-                file = words[1]
-                path = str(Path(words[0]).relative_to(root_dir))
-                path = './' + path if path is not '.' else './'
-                candidate['abbr'] = "{} - {}".format(file, path)
+                candidate['abbr'] = self.get_abbr(candidate, root_dirs)
+                candidate['word'] = candidate['abbr']
         return context['candidates']
 
-    def root_dir(self, context):
-        prefix = commonprefix([ x['action__path'] for x in context['candidates'] if x['action__path'] ])
+    def get_abbr(self, candidate, root_dirs):
+        root_dir = self.get_root_dir(candidate, root_dirs)
+        path, basename = split(candidate['action__path'])
+        path = Path(path).relative_to(root_dir)
+        path = './{}'.format(path) if path != '.' else './'
+        return "{} - {}".format(basename, path)
 
-        # detect project root.
-        sample = context['candidates'][0]
-        if 'action__path' in sample:
-            project_root = path2project(self.vim, sample['action__path'], ','.join(self.vars['root_markers']))
-            if len(project_root) < len(prefix):
-                return project_root
+    def get_root_dir(self, candidate, root_dirs):
+        candidate_dir = path2dir(candidate['action__path'])
 
-        return prefix
+        for root_dir in root_dirs:
+            if candidate_dir.startswith(root_dir):
+                return root_dir
+
+        root_dir = path2project(self.vim, candidate_dir, ','.join(self.vars['root_markers']))
+        if root_dir is candidate_dir:
+            return relpath(candidate_dir)
+
+        root_dirs.append(root_dir)
+        return root_dir
 
