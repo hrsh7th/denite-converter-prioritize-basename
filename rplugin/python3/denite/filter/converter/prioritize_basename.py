@@ -11,6 +11,7 @@ class Filter(Base):
         self.name = 'converter/prioritize_basename'
         self.description = 'convert to prioritize action path base name.'
         self.vars = {
+            'with_word': True,
             'root_markers': ['package.json', 'composer.json']
         }
 
@@ -19,6 +20,8 @@ class Filter(Base):
         for candidate in context['candidates']:
             if 'action__path' in candidate:
                 candidate['abbr'] = self.get_abbr(candidate, root_dirs)
+                if self.vars['with_word']:
+                    candidate['word'] = candidate['abbr']
         return context['candidates']
 
     def get_abbr(self, candidate, root_dirs):
