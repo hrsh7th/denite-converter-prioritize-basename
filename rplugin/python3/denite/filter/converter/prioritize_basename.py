@@ -35,7 +35,7 @@ class Filter(Base):
         candidate_dir = path2dir(candidate['action__path'])
 
         for root_dir in root_dirs:
-            if candidate_dir.startswith(root_dir):
+            if (candidate_dir + '/').startswith(root_dir + '/'):
                 return root_dir
 
         root_dir = path2project(self.vim, candidate_dir, ','.join(self.vars['root_markers']))
